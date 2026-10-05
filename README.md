@@ -4,6 +4,8 @@
 
 The goal of this project is to learn about **embedded systems, electronics, programming, networking and cybersecurity** while building the device from scratch.
 
+""ON THE 5.10 IT IS ONLY A TEST IN TERMINAL**
+
 > ⚠️ **Status:** Early Development
 
 ---
