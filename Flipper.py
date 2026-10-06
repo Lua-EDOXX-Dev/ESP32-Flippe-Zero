@@ -2,8 +2,25 @@
 #For ESP32 Vroom1 for Flipper Zero imitation
 #Only For Ethical Stuff, i´m not responsible for anything
 
+#imports
+from machine import Pin
+import time
+
+#git add Flipper.py
+#git commit -m "Beschreibung der Änderung"
+#git push
+
+#Buttons
+hoch = Pin(5, Pin.IN, Pin.PULL_UP)
+runter = Pin(7, Pin.IN, Pin.PULL_UP)
+ok = Pin(41, Pin.IN, Pin.PULL_UP)
+zuruck = Pin(39, Pin.IN, Pin.PULL_UP)
 
 #Main Menu
+menu = ["IR Remote", "WiFi", "Network", "RFID"]
+
+auswahl = 0
+
 def main_menu():
     print("====================")   
     print("     EDOXX TOOL")
@@ -39,11 +56,27 @@ def main_menu():
 
 #IR Remote menu
 def ir_remote():
-    print("[1] TV Remote")
-    print("[2] IR Scanner")
-    print("[3] Send IR Code")
-    print("[4] Learn IR Code")
-    print("[5] Saved Remotes")
+    while True:
+        print("[1] TV Remote")
+        print("[2] IR Scanner")
+        print("[3] Send IR Code")
+        print("[4] Learn IR Code")
+        print("[5] Saved Remotes")
+        print("[0] Back")
+        selection = input("Auswahl: ")
+
+        if selection == "1":
+            print("TV Remote")
+        elif selection == "2":
+            print("IR Scanner")
+        elif selection == "3":
+            print("Send IR Code")
+        elif selection == "4":
+            print("Learn IR Code")
+        elif selection == "5":
+            print("Saved Remotes")
+        elif selection == "0":
+            break
 
 #Wifi Menu
 def wifi_menu():
@@ -52,6 +85,7 @@ def wifi_menu():
     print("[3] Network Info")
     print("[4] Signal Strength")
     print("[5] Security Info")
+    print("[5] AP Flood")
     selection = input()
 
 def rfid_menu():
@@ -96,6 +130,22 @@ def settings_menu():
     print("[4] Device Name")
     print("[5] About")
 
+#Button test
+
+def button_test():
+    if hoch.value() == 0:
+        print("HOCH")
+
+    if runter.value() == 0:
+        print("RUNTER")
+
+    if ok.value() == 0:
+        print("OK")
+
+    if zuruck.value() == 0:
+        print("ZURUECK")
+
+    time.sleep_ms(100)
 
     #Muss ganz unten sein
 while True:
