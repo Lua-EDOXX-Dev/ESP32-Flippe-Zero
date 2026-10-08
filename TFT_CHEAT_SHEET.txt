@@ -1,0 +1,284 @@
+1. TFT starten
+
+Das ist dein Grundgerüst:
+
+from machine import Pin, SPI
+import st7789
+
+spi = SPI(
+    2,
+    baudrate=10_000_000,
+    polarity=0,
+    phase=0,
+    sck=Pin(12),
+    mosi=Pin(11)
+)
+
+display = st7789.ST7789(
+    spi,
+    240,
+    280,
+    reset=Pin(8, Pin.OUT),
+    dc=Pin(9, Pin.OUT),
+    cs=Pin(10, Pin.OUT),
+    rotation=0,
+    x_offset=0,
+    y_offset=20
+)
+
+display.init()
+2. Koordinaten
+
+Dein Display:
+
+Breite: 240
+Höhe:   280
+(0,0) --------------------> X
+  |
+  |
+  |
+  |
+  v
+  Y
+
+Oben links:
+
+(0, 0)
+
+Unten rechts:
+
+(239, 279)
+3. Bildschirm löschen / Farbe
+display.fill(st7789.BLACK)
+
+Beispiele:
+
+display.fill(st7789.RED)
+display.fill(st7789.GREEN)
+display.fill(st7789.BLUE)
+display.fill(st7789.WHITE)
+🎨 4. Farben
+
+Dein Treiber benutzt RGB565.
+
+Eingebaute Farben
+st7789.BLACK
+st7789.WHITE
+st7789.RED
+st7789.GREEN
+st7789.BLUE
+st7789.YELLOW
+st7789.CYAN
+st7789.MAGENTA
+Eigene Farbe
+
+Format:
+
+0xRRRR
+
+Genauer: RGB565-Hexwert.
+
+Beispiele:
+
+ORANGE = 0xFD20
+PURPLE = 0x780F
+DARK_BLUE = 0x0010
+GRAY = 0x8410
+
+Dann:
+
+display.fill(ORANGE)
+🟦 5. Gefülltes Rechteck
+display.fill_rect(x, y, breite, höhe, farbe)
+
+Beispiel:
+
+display.fill_rect(20, 30, 100, 50, st7789.RED)
+
+Bedeutet:
+
+x = 20
+y = 30
+Breite = 100
+Höhe = 50
+⬜ 6. Rechteck nur Rahmen
+display.rect(x, y, breite, höhe, farbe)
+
+Beispiel:
+
+display.rect(20, 30, 200, 100, st7789.WHITE)
+📏 7. Horizontale Linie
+display.hline(x, y, länge, farbe)
+
+Beispiel:
+
+display.hline(20, 100, 200, st7789.RED)
+📐 8. Vertikale Linie
+display.vline(x, y, länge, farbe)
+
+Beispiel:
+
+display.vline(120, 20, 200, st7789.GREEN)
+🔴 9. Einen einzelnen Pixel
+display.pixel(x, y, farbe)
+
+Beispiel:
+
+display.pixel(100, 100, st7789.WHITE)
+🖼️ 10. RGB565-Bild anzeigen
+
+Deine Datei:
+
+boot.rgb565
+
+laden:
+
+with open("boot.rgb565", "rb") as f:
+    bild = f.read()
+
+anzeigen:
+
+display.blit_buffer(
+    bild,
+    0,
+    0,
+    240,
+    280
+)
+
+Für dein komplettes Bild:
+
+with open("boot.rgb565", "rb") as f:
+    bild = f.read()
+
+display.blit_buffer(bild, 0, 0, 240, 280)
+📦 11. Bildgröße berechnen
+
+RGB565 braucht:
+
+2 Bytes pro Pixel
+
+Also:
+
+240 × 280 × 2
+= 134400 Bytes
+
+Deshalb sollte dein Bild ungefähr sein:
+
+134400 Bytes
+🧱 12. Beispiel: UI bauen
+display.fill(st7789.BLACK)
+
+# Header
+display.fill_rect(0, 0, 240, 45, st7789.BLUE)
+
+# Trennlinie
+display.hline(0, 45, 240, st7789.WHITE)
+
+# Buttons
+display.rect(20, 65, 200, 40, st7789.WHITE)
+display.rect(20, 120, 200, 40, st7789.WHITE)
+display.rect(20, 175, 200, 40, st7789.WHITE)
+display.rect(20, 230, 200, 40, st7789.WHITE)
+
+Damit kannst du schon ein Menü grafisch aufbauen.
+
+🔢 13. Variablen benutzen
+
+Sehr wichtig fürs Lernen:
+
+x = 20
+y = 50
+breite = 100
+hoehe = 40
+
+display.fill_rect(
+    x,
+    y,
+    breite,
+    hoehe,
+    st7789.RED
+)
+
+Du kannst Werte einfach verändern:
+
+x = x + 10
+
+oder:
+
+x += 10
+🔁 14. Schleifen
+
+Viele Rechtecke:
+
+for y in range(20, 260, 40):
+    display.rect(20, y, 200, 30, st7789.WHITE)
+
+Das erstellt mehrere Menüzeilen.
+
+🧠 15. Funktionen
+
+Sehr wichtig für dein Projekt:
+
+def zeichne_button(y):
+    display.rect(
+        20,
+        y,
+        200,
+        35,
+        st7789.WHITE
+    )
+
+Dann:
+
+zeichne_button(50)
+zeichne_button(100)
+zeichne_button(150)
+⚡ 16. time.sleep()
+
+Pause:
+
+import time
+
+time.sleep(1)
+
+1 Sekunde.
+
+time.sleep_ms(100)
+
+100 Millisekunden.
+
+🛠️ 17. Dein aktuell verfügbarer Treiber
+display.init()
+display.fill()
+display.fill_rect()
+display.pixel()
+display.hline()
+display.vline()
+display.rect()
+display.blit_buffer()
+
+Noch nicht eingebaut: Text/Fonts.
+
+Deshalb funktioniert momentan sowas noch nicht:
+
+display.text(...)
+🎯 18. Die wichtigsten Befehle zum Auswendiglernen
+display.fill(FARBE)
+
+display.fill_rect(x, y, w, h, FARBE)
+
+display.rect(x, y, w, h, FARBE)
+
+display.pixel(x, y, FARBE)
+
+display.hline(x, y, länge, FARBE)
+
+display.vline(x, y, länge, FARBE)
+
+display.blit_buffer(bild, x, y, w, h)
+Merksatz:
+x = links/rechts
+y = oben/unten
+w = width = Breite
+h = height = Höhe

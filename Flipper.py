@@ -19,7 +19,8 @@ zuruck = Pin(39, Pin.IN, Pin.PULL_UP)
 #Main Menu
 menu = ["IR Remote", "WiFi", "Network", "RFID"]
 
-auswahl = 0
+auswahl = 0 
+
 
 def main_menu():
     print("====================")   
