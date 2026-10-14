@@ -3,7 +3,7 @@
 #Only For Ethical Stuff, i´m not responsible for anything
 
 #imports
-from machine import Pin
+from machine import Pin, SPI
 import time
 
 #git add Flipper.py
@@ -21,7 +21,7 @@ menu = ["IR Remote", "WiFi", "Network", "RFID"]
 
 auswahl = 0 
 
-
+#Main Menu
 def main_menu():
     print("====================")   
     print("     EDOXX TOOL")
@@ -36,24 +36,22 @@ def main_menu():
     print("[8] Settings")
     print("[9] Hardware")
 
-    selection1 = input()
 
-    if selection1 == "1":
-        ir_remote()
-    elif selection1 == "2":
-        wifi_menu()
-    elif selection1 == "3":
-        network_menu()
-    elif selection1 == "4":
-        rfid_menu()
-    elif selection1 == "5":
-        mhz_menu()
-    elif selection1 == "6":
-        recon_menu()
-    elif selection1 == "7":
-        settings_menu()
-    elif selection1 == "8":
-        hardware_menu()
+    if hoch.value() == 0:
+        print("HOCH")
+        time.sleep_ms(300)
+
+    if runter.value() == 0:
+        print("RUNTER")
+        time.sleep_ms(300)
+
+    if ok.value() == 0:
+        print("OK")
+        time.sleep_ms(300)
+
+    if zurueck.value() == 0:
+        print("ZURUECK")
+        time.sleep_ms(300)
 
 #IR Remote menu
 def ir_remote():
