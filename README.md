@@ -4,9 +4,7 @@
 
 The goal of this project is to learn about **embedded systems, electronics, programming, networking and cybersecurity** while building the device from scratch.
 
->  ❗❗❗**ON THE 5.10 IT IS ONLY A TEST IN TERMINAL❗❗❗**
->
-> ⚠️ **Status:** Early Development
+> ⚠️ **Status:** Early to Mid Development
 
 ---
 
@@ -93,21 +91,4 @@ The project is being developed primarily with:
 
 The ESP32-S3 will eventually run the actual EDOXX Tool firmware.
 
----
 
-## 📂 Project Structure
-
-```text
-ESP32/
-│
-├── Flipper.py
-└── README.md
-```
-
-More files will be added as development continues.
-
----
-
-## 🎮 Controls
-
-The pl
