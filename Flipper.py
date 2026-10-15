@@ -1,151 +1,402 @@
-#Made by Erik
-#For ESP32 Vroom1 for Flipper Zero imitation
-#Only For Ethical Stuff, i´m not responsible for anything
-
-#imports
-from machine import Pin, SPI
+from machine import Pin, SPI, PWM
+import st7789 as ST
 import time
 
-#git add Flipper.py
-#git commit -m "Beschreibung der Änderung"
-#git push
+spi = SPI(
+    2,
+    baudrate=10_000_000,
+    polarity=0,
+    phase=0,
+    sck=Pin(12),
+    mosi=Pin(11)
+)
 
-#Buttons
-hoch = Pin(5, Pin.IN, Pin.PULL_UP)
-runter = Pin(7, Pin.IN, Pin.PULL_UP)
-ok = Pin(41, Pin.IN, Pin.PULL_UP)
-zuruck = Pin(39, Pin.IN, Pin.PULL_UP)
+display = ST.ST7789(
+    spi,
+    240, 280, #Größe
+    reset=Pin(8, Pin.OUT),
+    dc=Pin(9, Pin.OUT),
+    cs=Pin(10, Pin.OUT),
+    rotation=0,
+    x_offset=0,
+    y_offset=20
+)
 
-#Main Menu
-menu = ["IR Remote", "WiFi", "Network", "RFID"]
+display.init() #display initialiesieren
+display.fill(ST.MAGENTA) #Bildschirm füllen mit bestimmter farbe
 
-auswahl = 0 
-
-#Main Menu
+    
+#Text anzeigen lassen
 def main_menu():
-    print("====================")   
-    print("     EDOXX TOOL")
-    print("====================")
-    print("[1] IR Remote")
-    print("[2] WiFi")
-    print("[3] Network Menu")
-    print("[4] RFID / NFC")
-    print("[5] 433 MHz")
-    print("[6] Tools")
-    print("[7] Recon")
-    print("[8] Settings")
-    print("[9] Hardware")
+    display.fill(ST.MAGENTA)
+    display.text("""
+          (==============)   
+            (EDOXX TOOL)
+          (==============)
+          ([1] IR Remote)
+          ([2] WiFi)
+          ([3] Network)
+          ([4] RFID/NFC)
+          ([5] 433 MHz)
+          ([6] Recon)
+          ([7] Settings)
+          ([8] Hardware) """, -110, 10, ST.WHITE, background=None, size=2)
 
 
-    if hoch.value() == 0:
-        print("HOCH")
-        time.sleep_ms(300)
+menu = ["IR Remote", "WiFi", "Network Menu", "RFID / NFC",
+         "433 MHz", "Tools", "Recon", "Settings", "Hardware"]
 
-    if runter.value() == 0:
-        print("RUNTER")
-        time.sleep_ms(300)
+ir_menu = ["TV Remote", "IR Scanner", "Send IR Code", "Learn IR Code", "Saved Remotes"]
 
-    if ok.value() == 0:
-        print("OK")
-        time.sleep_ms(300)
+main_menu()
+buzzer_pin = Pin(6, Pin.OUT)
+buzzer_pin.value(0)
+buzzer = PWM(buzzer_pin)
+buzzer.duty_u16(0)
+auswahl = 1
 
-    if zurueck.value() == 0:
-        print("ZURUECK")
-        time.sleep_ms(300)
+hoch = Pin(5, Pin.IN, Pin.PULL_UP)
+runter = Pin(15, Pin.IN, Pin.PULL_UP)
+ok = Pin(41, Pin.IN, Pin.PULL_UP)
+zurueck = Pin(39, Pin.IN, Pin.PULL_UP)
 
-#IR Remote menu
+#Menues
+
+display.text(str(auswahl), 180, 220, ST.WHITE, background=ST.MAGENTA, size=3)
+
+#IR Remote Menu
 def ir_remote():
+    auswahl_ir_remote = 1
+    
     while True:
-        print("[1] TV Remote")
-        print("[2] IR Scanner")
-        print("[3] Send IR Code")
-        print("[4] Learn IR Code")
-        print("[5] Saved Remotes")
-        print("[0] Back")
-        selection = input("Auswahl: ")
-
-        if selection == "1":
-            print("TV Remote")
-        elif selection == "2":
-            print("IR Scanner")
-        elif selection == "3":
-            print("Send IR Code")
-        elif selection == "4":
-            print("Learn IR Code")
-        elif selection == "5":
-            print("Saved Remotes")
-        elif selection == "0":
+        display.text("""
+        (==============)   
+          (IR MENU)
+        (==============)
+        [1] TV Remote
+        [2] IR Scanner
+        [3] Send IR Code
+        [4] Learn IR Code
+        [5] Saved Remotes""", -80, 10, ST.WHITE, background=None, size=2)
+        
+        if zurueck.value() == 0:
+            display.fill(ST.MAGENTA)
+            main_menu()
+            break
+        
+        #Begrenzen der auswahl
+        if auswahl_ir_remote < 1:
+            auswahl_ir_remote = 1
+    
+        if auswahl_ir_remote > 5:
+            auswahl_ir_remote = 5
+    
+        #Knöpfe abfragen für auswahl
+        if runter.value() == 0: 
+            auswahl_ir_remote += 1
+            time.sleep_ms(300)
+            display.text(str(auswahl_ir_remote), 180, 220, ST.WHITE, background=ST.MAGENTA, size=3)
+            time.sleep_ms(300)
+        
+        if hoch.value() == 0:
+            auswahl_ir_remote -= 1
+            time.sleep_ms(300)
+            display.text(str(auswahl_ir_remote), 180, 220, ST.WHITE, background=ST.MAGENTA, size=3)
+            time.sleep_ms(300)
+        
+    #OK knopf
+        if ok.value() == 0:
+            if auswahl_ir_remote == 1:
+                display.fill(ST.MAGENTA)
+                time.sleep(1)
+                ir_remote()
+                time.sleep_ms(100)
+                auswahl_ir_remote = 1
+            elif auswahl_ir_remote == 2:
+                display.fill(ST.MAGENTA)
+                time.sleep(1)
+                ir_scanner()
+                time.sleep_ms(100)
+                auswahl_ir_remote = 1
+            elif auswahl_ir_remote == 3:
+                display.fill(ST.MAGENTA)
+                time.sleep(1)
+                network_menu()
+                time.sleep_ms(100)
+                auswahl_ir_remote = 1
+            elif auswahl_ir_remote == 4:
+                display.fill(ST.MAGENTA)
+                time.sleep(1)
+                nfc_menu()
+                time.sleep_ms(100)
+                auswahl_ir_remote = 1
+            elif auswahl_ir_remote == 5:
+                display.fill(ST.MAGENTA)
+                time.sleep(1)
+                mhz_menu()
+                time.sleep_ms(100)
+                auswahl_ir_remote = 1
+            
+            time.sleep_ms(300)
+        
+def wifi_menu():
+    
+    while True:
+        display.text("""
+        (==============)   
+          (WIFI MENU)
+        (==============)
+        [1] Wifi Scanner
+        [2] Saved Networks
+        [3] Network Info
+        [4] Signal Strength
+        [5] Security Info
+        [5] AP Flood """, -80, 10, ST.WHITE, background=None, size=2)
+    
+        if zurueck.value() == 0:
+            display.fill(ST.MAGENTA)
+            main_menu()
+            break
+        
+def network_menu():
+    
+    while True:
+        display.text("""
+        (==============)   
+         (NETWORK MENU)
+        (==============)
+        [1] Ping
+        [2] DNS Lookup
+        [3] IP Info
+        [4] Host Scanner
+        [5] Port Scanner """, -80, 10, ST.WHITE, background=None, size=2)
+        
+        if zurueck.value() == 0:
+            display.fill(ST.MAGENTA)
+            main_menu()
+            break
+    
+def nfc_menu():
+    
+    while True:
+        display.text("WIP", 100, 100, ST.WHITE, background=None, size=2)
+        
+        if zurueck.value() == 0:
+            display.fill(ST.MAGENTA)
+            main_menu()
+            break
+    
+def mhz_menu():
+    
+    while True:
+        display.text("WIP",-80, 10, ST.WHITE, background=None, size=2)
+        
+        if zurueck.value() == 0:
+            display.fill(ST.MAGENTA)
+            main_menu()
             break
 
-#Wifi Menu
-def wifi_menu():
-    print("[1] Wifi Scanner")
-    print("[2] Saved Networks")
-    print("[3] Network Info")
-    print("[4] Signal Strength")
-    print("[5] Security Info")
-    print("[5] AP Flood")
-    selection = input()
-
-def rfid_menu():
-    print("[1] RFID Scanner")
-    print("[2] Read UID")
-    print("[3] Read Tag")
-    print("[4] Write Tag")
-    print("[5] Saved Tags")
-
-def mhz_menu():
-    print("[1] RF Scanner")
-    print("[2] Learn Signal")
-    print("[3] Analyze Signal")
-    print("[4] Send Signal")
-    print("[5] Saved Signals")
-
-def network_menu():
-    print("[1] Ping")
-    print("[2] DNS Lookup")
-    print("[3] IP Info")
-    print("[4] Host Scanner")
-    print("[5] Port Scanner")
-
 def recon_menu():
-    print("[1] Host Info")
-    print("[2] DNS Info")
-    print("[3] IP Info")
-    print("[4] Service Scan")
-    print("[5] Device Scan")
-
-def hardware_menu():
-    print("[1] GPIO Test")
-    print("[2] Button Test")
-    print("[3] Joystick Test")
-    print("[4] Display Test")
-    print("[5] Buzzer Test")
-
+    
+    while True:
+        display.text("""
+        (==============)   
+          (RECON MENU)
+        (==============)
+        [1] Host Info
+        [2] DNS Info
+        [3] IP Info
+        [4] Service Scan
+        [5] Device Scan """, -80, 10, ST.WHITE, background=None, size=2)
+        
+        if zurueck.value() == 0:
+            display.fill(ST.MAGENTA)
+            main_menu()
+            break
+        
 def settings_menu():
-    print("[1] Brightness")
-    print("[2] Sound")
-    print("[3] Theme")
-    print("[4] Device Name")
-    print("[5] About")
-
-#Button test
-
+    
+    while True:
+        display.text("""
+        (==============)   
+           (SETTINGS)
+        (==============)
+        [1] Brightness
+        [2] Sound
+        [3] Theme
+        [4] Device Name
+        [5] About """, -80, 10, ST.WHITE, background=None, size=2)
+        
+        if zurueck.value() == 0:
+            display.fill(ST.MAGENTA)
+            main_menu()
+            break
+    
+def hardware_menu():
+    
+    while True:
+        display.text("""
+        (==============)   
+           (HARDWARE)
+        (==============)
+        [1] GPIO Test
+        [2] Button Test
+        [3] Joystick Test
+        [4] Display Test
+        [5] Free Space
+        [6] Buzzer Test """, -80, 10, ST.WHITE, background=None, size=2)
+        
+        if zurueck.value() == 0:
+            display.fill(ST.MAGENTA)
+            main_menu()
+            break
+        
+def buzzer_test():
+    display.text("""
+    (==============)   
+      (Testing...)
+    (==============) """, -80, 50, ST.WHITE, background=None, size=2)
+    buzzer.freq(2000)
+    buzzer.duty_u16(1000)
+    time.sleep(1)
+    buzzer.duty_u16(0)
+    buzzer.deinit()
+    time.sleep(3)
+    display.fill(ST.MAGENTA)
+    hardware_menu()
+    
 def button_test():
-    if hoch.value() == 0:
-        print("HOCH")
+    display.text("""
+    (==============)   
+      (Testing...)
+    (==============) """, -80, 50, ST.WHITE, background=None, size=2)
+     
+    while True:
 
-    if runter.value() == 0:
-        print("RUNTER")
+        if hoch.value() == 0:
+            display.text("Up Works", -80, 50, ST.WHITE, background=None, size=2)
+            time.sleep_ms(300) 
 
-    if ok.value() == 0:
-        print("OK")
+        if runter.value() == 0:
+            display.text("Down Works", -80, 60, ST.WHITE, background=None, size=2)
+            time.sleep_ms(300)
 
-    if zuruck.value() == 0:
-        print("ZURUECK")
+        if ok.value() == 0:
+            display.text("Ok Works", -80, 70, ST.WHITE, background=None, size=2)
+            time.sleep_ms(300)
 
-    time.sleep_ms(100)
+        if zurueck.value() == 0:
+            display.text("Back Works", -80, 80, ST.WHITE, background=None, size=2)
+            time.sleep_ms(300)
+    
+    
+def ir_scanner():
+    
+    from machine import Pin, time_pulse_us
+    import time
 
-    #Muss ganz unten sein
+    rx = Pin(17, Pin.IN)
+    time.sleep(2)
+
+    display.text("Jetzt eine Fernbedienungstaste druecken!", 10, 80, ST.WHITE, background=None, size=2)
+
+    # Auf einen LOW-Puls warten
+    start = time.ticks_ms()
+    while rx.value() == 1:
+        if time.ticks_diff(time.ticks_ms(), start) > 10000:
+            print("Kein Signal erkannt.")
+            raise SystemExit
+
+    pulses = []
+
+    # Signalabschnitte aufnehmen
+    for i in range(100):
+        low = time_pulse_us(rx, 0, 20000)
+        if low < 0:
+            break
+
+        high = time_pulse_us(rx, 1, 20000)
+        if high < 0:
+            break
+
+        pulses.append((low, high))
+    display.text("Aufnahme fertig!", 10, 100, ST.WHITE, background=None, size=2)
+    display.text("Anzahl Pulse:", len(pulses), 10, 120, ST.WHITE, background=None, size=2)
+
+
+
+
 while True:
-    main_menu()
+    #Begrenzen
+    if auswahl < 1:
+        auswahl = 1
+    
+    if auswahl > 8:
+        auswahl = 8
+    
+    #Knöpfe abfragen
+    if runter.value() == 0: 
+        auswahl += 1
+        time.sleep_ms(300)
+        display.text(str(auswahl), 180, 220, ST.WHITE, background=ST.MAGENTA, size=3)
+        time.sleep_ms(300)
+        
+    if hoch.value() == 0:
+        auswahl -= 1
+        time.sleep_ms(300)
+        display.text(str(auswahl), 180, 220, ST.WHITE, background=ST.MAGENTA, size=3)
+        time.sleep_ms(300)
+        
+    if ok.value() == 0:
+        if auswahl == 1:
+            display.fill(ST.MAGENTA)
+            time.sleep(1)
+            ir_remote()
+            display.text(str(auswahl_ir_remote), 180, 220, ST.WHITE, background=ST.MAGENTA, size=3)
+            time.sleep_ms(100)
+            auswahl = 1
+        elif auswahl == 2:
+            display.fill(ST.MAGENTA)
+            time.sleep(1)
+            wifi_menu()
+            time.sleep_ms(100)
+            auswahl = 1
+        elif auswahl == 3:
+            display.fill(ST.MAGENTA)
+            time.sleep(1)
+            network_menu()
+            time.sleep_ms(100)
+            auswahl = 1
+        elif auswahl == 4:
+            display.fill(ST.MAGENTA)
+            time.sleep(1)
+            nfc_menu()
+            time.sleep_ms(100)
+            auswahl = 1
+        elif auswahl == 5:
+            display.fill(ST.MAGENTA)
+            time.sleep(1)
+            mhz_menu()
+            time.sleep_ms(100)
+            auswahl = 1
+        elif auswahl == 6:
+            display.fill(ST.MAGENTA)
+            time.sleep(1)
+            recon_menu()
+            time.sleep_ms(100)
+            auswahl = 1
+        elif auswahl == 7:
+            display.fill(ST.MAGENTA)
+            time.sleep(1)
+            settings_menu()
+            time.sleep_ms(100)
+            auswahl = 1
+        elif auswahl == 8:
+            display.fill(ST.MAGENTA)
+            time.sleep(1)
+            hardware_menu()
+            time.sleep_ms(100)
+            auswahl = 1
+            
+        time.sleep_ms(300)
+        
